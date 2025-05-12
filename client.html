@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Customer Data Form</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+      position: relative;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+
+    input[type="submit"] {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    input[type="submit"]:hover {
+      background: #218838;
+    }
+
+    #result {
+      margin-top: 20px;
+      padding: 15px 20px;
+      background: #e9f7ef;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+      border-radius: 6px;
+      font-weight: bold;
+      position: relative;
+      display: none;
+      text-align: center;
+    }
+
+    #closeResult {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      font-weight: bold;
+      color: #999;
+      cursor: pointer;
+    }
+
+    #closeResult:hover {
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Customer Information Form</h2>
+    <form id="customerForm">
+      <label for="age">Age:</label>
+      <input type="number" id="age" name="age" required />
+
+      <label for="gender">Gender:</label>
+      <select id="gender" name="gender" required>
+        <option value="0">Male</option>
+        <option value="1">Female</option>
+      </select>
+
+      <label for="income">Annual Income (in dollars):</label>
+      <input type="number" id="income" name="income" required min="0" />
+
+      <label for="purchases">Number of Purchases:</label>
+      <input type="number" id="purchases" name="purchases" required min="0" />
+
+      <label for="category">Product Category:</label>
+      <select id="category" name="category" required>
+        <option value="0">Electronics</option>
+        <option value="1">Clothing</option>
+        <option value="2">Home Goods</option>
+        <option value="3">Beauty</option>
+        <option value="4">Sports</option>
+      </select>
+
+      <label for="time_spent">Time Spent on Website (in minutes):</label>
+      <input type="number" id="time_spent" name="time_spent" required min="0" />
+
+      <label for="loyalty_program">Loyalty Program Member:</label>
+      <select id="loyalty_program" name="loyalty_program" required>
+        <option value="0">No</option>
+        <option value="1">Yes</option>
+      </select>
+
+      <label for="discounts">Discounts Availed (0-5):</label>
+      <input type="number" id="discounts" name="discounts" required min="0" max="5" />
+
+      <input type="submit" value="Submit" />
+    </form>
+
+    <div id="result">
+      <button id="closeResult" onclick="hideResult()">×</button>
+      <span id="resultText"></span>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('customerForm');
+    const resultBox = document.getElementById('result');
+    const resultText = document.getElementById('resultText');
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch("http://127.0.0.1:5000/predict", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          resultBox.style.display = "block";
+          resultBox.style.backgroundColor = "#d4edda";
+          resultBox.style.color = "#155724";
+
+          if (data.prediction === 1 || data.prediction === "1") {
+            resultText.innerText = "✅ Khách hàng tiềm năng";
+          } else {
+            resultText.innerText = "⚠️ Không phải khách hàng tiềm năng";
+          }
+        } else {
+          showError(data.error || "Đã xảy ra lỗi.");
+        }
+      } catch (error) {
+        showError("Không thể kết nối đến server.");
+      }
+    });
+
+    function hideResult() {
+      resultBox.style.display = "none";
+    }
+
+    function showError(message) {
+      resultBox.style.display = "block";
+      resultBox.style.backgroundColor = "#f8d7da";
+      resultBox.style.color = "#721c24";
+      resultText.innerText = `❌ ${message}`;
+    }
+  </script>
+</body>
+</html>
